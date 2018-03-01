@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file, in reverse chronological order by release.
 
+## 2.4.0 - TBD
+
+### Added
+
+- [#54](https://github.com/zendframework/zend-expressive-router/pull/54) adds
+  the middleware `Zend\Expressive\Router\Middleware\DispatchMiddleware` and
+  `Zend\Expressive\Router\Middleware\RouteMiddleware`. These are the same as the
+  versions shipped in 2.3.0, but under a new namespace.
+
+### Changed
+
+- Nothing.
+
+### Deprecated
+
+- [#54](https://github.com/zendframework/zend-expressive-router/pull/54)
+  deprecates the middleware `Zend\Expressive\Router\DispatchMiddleware` and
+  `Zend\Expressive\Router\RouteMiddleware`. The final versions in the v3 release
+  will be under the `Zend\Expressive\Router\Middleware` namespace; please use
+  those instead.
+
+### Removed
+
+- Nothing.
+
+### Fixed
+
+- Nothing.
+
 ## 2.3.0 - 2018-02-01
 
 ### Added
