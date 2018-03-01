@@ -183,4 +183,15 @@ class ImplicitHeadMiddlewareTest extends TestCase
         $this->assertSame('', (string) $result->getBody());
         $this->assertSame('application/json', $result->getHeaderLine('content-type'));
     }
+
+    public function testAllowsSpecifyingACustomStreamFactory()
+    {
+        $response = $this->prophesize(ResponseInterface::class)->reveal();
+        $streamFactory = function () {
+        };
+
+        $middleware = new ImplicitHeadMiddleware($response, $streamFactory);
+        $this->assertAttributeSame($response, 'response', $middleware);
+        $this->assertAttributeSame($streamFactory, 'streamFactory', $middleware);
+    }
 }

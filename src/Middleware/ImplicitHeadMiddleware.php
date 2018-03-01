@@ -10,6 +10,7 @@ namespace Zend\Expressive\Router\Middleware;
 use Fig\Http\Message\RequestMethodInterface as RequestMethod;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
 use Webimpress\HttpMiddlewareCompatibility\HandlerInterface;
 use Webimpress\HttpMiddlewareCompatibility\MiddlewareInterface;
 use Zend\Diactoros\Response;
@@ -53,13 +54,27 @@ class ImplicitHeadMiddleware implements MiddlewareInterface
     private $response;
 
     /**
+     * PHP callable capable of producing an empty, writable StreamInterface
+     * instance.
+     *
+     * @var callable
+     */
+    private $streamFactory;
+
+    /**
      * @param null|ResponseInterface $response Response prototype to return
      *     for implicit HEAD requests; if none provided, an empty zend-diactoros
      *     instance will be created.
+     * @param null|callable $streamFactory PHP callable capable of producing an
+     *     empty, writable StreamInterface instance. If none is provided, a factory
+     *     generating an empty zend-diactoros Stream instance will be created.
      */
-    public function __construct(ResponseInterface $response = null)
+    public function __construct(ResponseInterface $response = null, callable $streamFactory = null)
     {
         $this->response = $response;
+        $this->streamFactory = $streamFactory ?: function () {
+            return new Stream('php://temp', 'wb+');
+        };
     }
 
     /**
@@ -98,7 +113,8 @@ class ImplicitHeadMiddleware implements MiddlewareInterface
                 ->withAttribute(self::FORWARDED_HTTP_METHOD_ATTRIBUTE, RequestMethod::METHOD_HEAD)
         );
 
-        return $response->withBody(new Stream('php://temp/', 'wb+'));
+        $body = ($this->streamFactory)();
+        return $response->withBody($body);
     }
 
     /**
