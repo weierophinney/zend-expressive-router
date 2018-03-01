@@ -11,6 +11,16 @@ All notable changes to this project will be documented in this file, in reverse 
   `Zend\Expressive\Router\Middleware\RouteMiddleware`. These are the same as the
   versions shipped in 2.3.0, but under a new namespace.
 
+- [#55](https://github.com/zendframework/zend-expressive-router/pull/55) adds
+  the classes `Zend\Expressive\Router\Middleware\ImplicitHeadMiddleware` and
+  `Zend\Expressive\Router\Middleware\ImplicitOptionsMiddleware`; they are
+  imported mostly verbatim from zend-expressive v2, with minor changes to ensure
+  compatibilty with all releases of http-interop.
+
+  `Zend\Expressive\Router\Middleware\ImplicitHeadMiddleware` contains one
+  additional change: the constructor now defines an optional second argument, a
+  PHP callable capable of producing an empty PSR-7 `StreamInterface` instance.
+
 ### Changed
 
 - Nothing.
