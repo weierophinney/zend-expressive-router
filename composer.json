@@ -28,7 +28,8 @@
     "require-dev": {
         "malukenho/docheader": "^0.1.5",
         "phpunit/phpunit": "^5.7.23 || ^6.4.3",
-        "zendframework/zend-coding-standard": "~1.0.0"
+        "zendframework/zend-coding-standard": "~1.0.0",
+        "zendframework/zend-diactoros": "^1.7.1"
     },
     "suggest": {
         "zendframework/zend-expressive-aurarouter": "^1.0 to use the Aura.Router routing adapter",
