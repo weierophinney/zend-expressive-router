@@ -25,6 +25,7 @@ class ImplicitOptionsHandler implements HandlerInterface
     public function __construct(HandlerInterface $handler, ResponseInterface $response)
     {
         $this->handler = $handler;
+        $this->response = $response;
     }
 
     /**
