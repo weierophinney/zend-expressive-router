@@ -7,6 +7,7 @@
 
 namespace Zend\Expressive\Router\Test\TestAsset;
 
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Webimpress\HttpMiddlewareCompatibility\HandlerInterface;
@@ -39,6 +40,14 @@ class ImplicitOptionsHandler implements HandlerInterface
      * @return ResponseInterface
      */
     public function process(ServerRequestInterface $request)
+    {
+        return $this->handle($request);
+    }
+
+    /**
+     * @return ResponseInterface
+     */
+    public function next(RequestInterface $request)
     {
         return $this->handle($request);
     }
