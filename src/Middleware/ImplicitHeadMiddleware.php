@@ -113,7 +113,8 @@ class ImplicitHeadMiddleware implements MiddlewareInterface
                 ->withAttribute(self::FORWARDED_HTTP_METHOD_ATTRIBUTE, RequestMethod::METHOD_HEAD)
         );
 
-        $body = ($this->streamFactory)();
+        $streamFactory = $this->streamFactory;
+        $body = $streamFactory();
         return $response->withBody($body);
     }
 
