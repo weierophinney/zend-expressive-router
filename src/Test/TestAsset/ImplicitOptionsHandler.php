@@ -10,8 +10,6 @@ namespace Zend\Expressive\Router\Test\TestAsset;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Webimpress\HttpMiddlewareCompatibility\HandlerInterface;
-use Zend\Diactoros\Response;
-use Zend\Diactoros\Stream;
 use Zend\Expressive\Router\Middleware\ImplicitOptionsMiddleware;
 
 class ImplicitOptionsHandler implements HandlerInterface
