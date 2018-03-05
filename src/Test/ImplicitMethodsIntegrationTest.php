@@ -5,8 +5,6 @@
  * @license   https://github.com/zendframework/zend-expressive-router/blob/master/LICENSE.md New BSD License
  */
 
-declare(strict_types=1);
-
 namespace Zend\Expressive\Router\Test;
 
 use Fig\Http\Message\RequestMethodInterface as RequestMethod;
@@ -16,8 +14,6 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Stream;
@@ -39,9 +35,15 @@ use Zend\Expressive\Router\RouterInterface;
  */
 abstract class ImplicitMethodsIntegrationTest extends TestCase
 {
-    abstract public function getRouter() : RouterInterface;
+    /**
+     * @return RouterInterface
+     */
+    abstract public function getRouter();
 
-    public function method() : Generator
+    /**
+     * @return Generator
+     */
+    public function method()
     {
         yield RequestMethod::METHOD_HEAD => [
             RequestMethod::METHOD_HEAD,
@@ -66,8 +68,9 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
 
     /**
      * @dataProvider method
+     * @param string $method
      */
-    public function testExplicitRequest(string $method, MiddlewareInterface $middleware)
+    public function testExplicitRequest($method, MiddlewareInterface $middleware)
     {
         $middleware1 = $this->prophesize(MiddlewareInterface::class)->reveal();
         $middleware2 = $this->prophesize(MiddlewareInterface::class)->reveal();
@@ -116,25 +119,7 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
             ->shouldBeCalledTimes(1);
 
         $routeMiddleware = new PathBasedRoutingMiddleware($router);
-        $handler = new class ($finalHandler->reveal(), $middleware) implements RequestHandlerInterface
-        {
-            /** @var RequestHandlerInterface */
-            private $handler;
-
-            /** @var MiddlewareInterface */
-            private $middleware;
-
-            public function __construct(RequestHandlerInterface $handler, MiddlewareInterface $middleware)
-            {
-                $this->handler = $handler;
-                $this->middleware = $middleware;
-            }
-
-            public function handle(ServerRequestInterface $request) : ResponseInterface
-            {
-                return $this->middleware->process($request, $this->handler);
-            }
-        };
+        $handler = new TestAsset\PassThroughFinalHandler($finalHandler->reveal(), $middleware);
 
         $request = new ServerRequest([], [], '/api/v1/me', $method);
 
@@ -197,31 +182,7 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
             ->shouldBeCalledTimes(1);
 
         $routeMiddleware = new PathBasedRoutingMiddleware($router);
-        $handler = new class ($finalHandler->reveal()) implements RequestHandlerInterface
-        {
-            /** @var RequestHandlerInterface */
-            private $handler;
-
-            public function __construct(RequestHandlerInterface $handler)
-            {
-                $this->handler = $handler;
-            }
-
-            public function handle(ServerRequestInterface $request) : ResponseInterface
-            {
-                $middleware = new ImplicitHeadMiddleware(
-                    function () {
-                        return new Response();
-                    },
-                    function () {
-                        return new Stream('php://temp', 'rw');
-                    }
-                );
-
-                return $middleware->process($request, $this->handler);
-            }
-        };
-
+        $handler = new TestAsset\ImplicitHeadHandler($finalHandler->reveal());
         $request = new ServerRequest([], [], '/api/v1/me', RequestMethod::METHOD_HEAD);
 
         $response = $routeMiddleware->process($request, $handler);
@@ -250,28 +211,7 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
         $finalResponse->getBody()->write('response body bar');
 
         $routeMiddleware = new PathBasedRoutingMiddleware($router);
-        $handler = new class ($finalHandler->reveal(), $finalResponse) implements RequestHandlerInterface
-        {
-            /** @var RequestHandlerInterface */
-            private $handler;
-
-            /** @var ResponseInterface */
-            private $response;
-
-            public function __construct(RequestHandlerInterface $handler, ResponseInterface $response)
-            {
-                $this->handler = $handler;
-                $this->response = $response;
-            }
-
-            public function handle(ServerRequestInterface $request) : ResponseInterface
-            {
-                return (new ImplicitOptionsMiddleware(function () {
-                    return $this->response;
-                }))->process($request, $this->handler);
-            }
-        };
-
+        $handler = new TestAsset\ImplicitOptionsMiddleware($finalHandler->reveal(), $finalResponse);
         $request = new ServerRequest([], [], '/api/v1/me', RequestMethod::METHOD_OPTIONS);
 
         $response = $routeMiddleware->process($request, $handler);
