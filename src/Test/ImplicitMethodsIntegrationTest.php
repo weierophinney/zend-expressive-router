@@ -24,6 +24,8 @@ use Zend\Expressive\Router\Route;
 use Zend\Expressive\Router\RouteResult;
 use Zend\Expressive\Router\RouterInterface;
 
+use const Webimpress\HttpMiddlewareCompatibility\HANDLER_METHOD;
+
 /**
  * Base class for testing adapter integrations.
  *
@@ -84,9 +86,9 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
         $finalResponse = (new Response())->withHeader('foo-bar', 'baz');
         $finalResponse->getBody()->write('FOO BAR BODY');
 
-        $finalHandler = $this->prophesize(RequestHandlerInterface::class);
+        $finalHandler = $this->prophesize(HandlerInterface::class);
         $finalHandler
-            ->handle(Argument::that(function (ServerRequestInterface $request) use ($method, $route1) {
+            ->{HANDLER_METHOD}(Argument::that(function (ServerRequestInterface $request) use ($method, $route1) {
                 if ($request->getMethod() !== $method) {
                     return false;
                 }
@@ -145,9 +147,9 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
         $finalResponse = (new Response())->withHeader('foo-bar', 'baz');
         $finalResponse->getBody()->write('FOO BAR BODY');
 
-        $finalHandler = $this->prophesize(RequestHandlerInterface::class);
+        $finalHandler = $this->prophesize(HandlerInterface::class);
         $finalHandler
-            ->handle(Argument::that(function (ServerRequestInterface $request) use ($route1) {
+            ->{HANDLER_METHOD}(Argument::that(function (ServerRequestInterface $request) use ($route1) {
                 if ($request->getMethod() !== RequestMethod::METHOD_GET) {
                     return false;
                 }
@@ -204,8 +206,8 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
         $router->addRoute($route1);
         $router->addRoute($route2);
 
-        $finalHandler = $this->prophesize(RequestHandlerInterface::class);
-        $finalHandler->handle()->shouldNotBeCalled();
+        $finalHandler = $this->prophesize(HandlerInterface::class);
+        $finalHandler->{HANDLER_METHOD}()->shouldNotBeCalled();
 
         $finalResponse = (new Response())->withHeader('foo-bar', 'baz');
         $finalResponse->getBody()->write('response body bar');
