@@ -21,7 +21,7 @@ use Zend\Diactoros\ServerRequest;
 use Zend\Diactoros\Stream;
 use Zend\Expressive\Router\Middleware\ImplicitHeadMiddleware;
 use Zend\Expressive\Router\Middleware\ImplicitOptionsMiddleware;
-use Zend\Expressive\Router\Middleware\PathBasedRoutingMiddleware;
+use Zend\Expressive\Router\Middleware\RouteMiddleware as PathBasedRoutingMiddleware;
 use Zend\Expressive\Router\Route;
 use Zend\Expressive\Router\RouteResult;
 use Zend\Expressive\Router\RouterInterface;
@@ -52,9 +52,7 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
         yield RequestMethod::METHOD_HEAD => [
             RequestMethod::METHOD_HEAD,
             new ImplicitHeadMiddleware(
-                function () {
-                    return new Response();
-                },
+                new Response(),
                 function () {
                     return new Stream('php://temp', 'rw');
                 }
@@ -63,9 +61,7 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
         yield RequestMethod::METHOD_OPTIONS => [
             RequestMethod::METHOD_OPTIONS,
             new ImplicitOptionsMiddleware(
-                function () {
-                    return new Response();
-                }
+                new Response()
             ),
         ];
     }
@@ -122,7 +118,10 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
             ->willReturn($finalResponse)
             ->shouldBeCalledTimes(1);
 
-        $routeMiddleware = new PathBasedRoutingMiddleware($router);
+        $routeMiddleware = new PathBasedRoutingMiddleware(
+            $router,
+            $this->prophesize(ResponseInterface::class)->reveal()
+        );
         $handler = new TestAsset\PassThroughFinalHandler($finalHandler->reveal(), $middleware);
 
         $request = new ServerRequest([], [], '/api/v1/me', $method);
@@ -185,7 +184,10 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
             ->willReturn($finalResponse)
             ->shouldBeCalledTimes(1);
 
-        $routeMiddleware = new PathBasedRoutingMiddleware($router);
+        $routeMiddleware = new PathBasedRoutingMiddleware(
+            $router,
+            $this->prophesize(ResponseInterface::class)->reveal()
+        );
         $handler = new TestAsset\ImplicitHeadHandler($finalHandler->reveal());
         $request = new ServerRequest([], [], '/api/v1/me', RequestMethod::METHOD_HEAD);
 
@@ -214,8 +216,11 @@ abstract class ImplicitMethodsIntegrationTest extends TestCase
         $finalResponse = (new Response())->withHeader('foo-bar', 'baz');
         $finalResponse->getBody()->write('response body bar');
 
-        $routeMiddleware = new PathBasedRoutingMiddleware($router);
-        $handler = new TestAsset\ImplicitOptionsMiddleware($finalHandler->reveal(), $finalResponse);
+        $routeMiddleware = new PathBasedRoutingMiddleware(
+            $router,
+            $this->prophesize(ResponseInterface::class)->reveal()
+        );
+        $handler = new TestAsset\ImplicitOptionsHandler($finalHandler->reveal(), $finalResponse);
         $request = new ServerRequest([], [], '/api/v1/me', RequestMethod::METHOD_OPTIONS);
 
         $response = $routeMiddleware->process($request, $handler);
