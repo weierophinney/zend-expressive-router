@@ -59,10 +59,11 @@ class ImplicitHeadMiddlewareTest extends TestCase
         $this->assertSame($response, $result);
     }
 
-    public function testReturnsResultOfNextWhenRouteResultDoesNotComposeRoute()
+    public function testReturnsResultOfHandlerWhenRouteResultDoesNotComposeRoute()
     {
         $result = $this->prophesize(RouteResult::class);
-        $result->getMatchedRoute()->willReturn(null);
+        $result->getAllowedMethods()->willReturn([]);
+        $result->getMatchedRoute()->willReturn(false);
 
         $request = $this->prophesize(ServerRequestInterface::class);
         $request->getMethod()->willReturn(RequestMethod::METHOD_HEAD);
@@ -80,12 +81,13 @@ class ImplicitHeadMiddlewareTest extends TestCase
         $this->assertSame($response, $result);
     }
 
-    public function testReturnsResultOfNextWhenRouteSupportsHeadExplicitly()
+    public function testReturnsResultOfHandlerWhenRouteSupportsHeadExplicitly()
     {
         $route = $this->prophesize(Route::class);
         $route->implicitHead()->willReturn(false);
 
         $result = $this->prophesize(RouteResult::class);
+        $result->getAllowedMethods()->willReturn([RequestMethod::METHOD_HEAD]);
         $result->getMatchedRoute()->will([$route, 'reveal']);
 
         $request = $this->prophesize(ServerRequestInterface::class);
@@ -108,9 +110,9 @@ class ImplicitHeadMiddlewareTest extends TestCase
     {
         $route = $this->prophesize(Route::class);
         $route->implicitHead()->willReturn(true);
-        $route->allowsMethod(RequestMethod::METHOD_GET)->willReturn(false);
 
         $result = $this->prophesize(RouteResult::class);
+        $result->getAllowedMethods()->willReturn([RequestMethod::METHOD_HEAD]);
         $result->getMatchedRoute()->will([$route, 'reveal']);
 
         $request = $this->prophesize(ServerRequestInterface::class);
@@ -134,9 +136,9 @@ class ImplicitHeadMiddlewareTest extends TestCase
     {
         $route = $this->prophesize(Route::class);
         $route->implicitHead()->willReturn(true);
-        $route->allowsMethod(RequestMethod::METHOD_GET)->willReturn(false);
 
         $result = $this->prophesize(RouteResult::class);
+        $result->getAllowedMethods()->willReturn([RequestMethod::METHOD_HEAD]);
         $result->getMatchedRoute()->will([$route, 'reveal']);
 
         $request = $this->prophesize(ServerRequestInterface::class);
@@ -155,13 +157,13 @@ class ImplicitHeadMiddlewareTest extends TestCase
         $this->assertSame($expected, $result);
     }
 
-    public function testInvokesNextWhenRouteImplicitlySupportsHeadAndSupportsGet()
+    public function testInvokesHandlerWhenRouteImplicitlySupportsHeadAndSupportsGet()
     {
         $route = $this->prophesize(Route::class);
         $route->implicitHead()->willReturn(true);
-        $route->allowsMethod(RequestMethod::METHOD_GET)->willReturn(true);
 
         $result = $this->prophesize(RouteResult::class);
+        $result->getAllowedMethods()->willReturn([RequestMethod::METHOD_HEAD, RequestMethod::METHOD_GET]);
         $result->getMatchedRoute()->will([$route, 'reveal']);
 
         $request = (new ServerRequest([], [], null, RequestMethod::METHOD_HEAD))
